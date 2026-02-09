@@ -374,6 +374,87 @@ task convertPluginSkins {
 preBuild.dependsOn convertPluginSkins
 ```
 
+## Responsive Design & Orientation
+
+Most guitar effect pedals are designed **horizontally** (wide × short). The theme system provides multiple strategies to handle different screen sizes and orientations:
+
+### Layout Variants
+
+Define multiple dimension sizes with orientation hints:
+
+```json
+"dimensions": {
+  "standard": {
+    "width": 280,
+    "height": 180,
+    "orientation": "landscape"
+  },
+  "variants": [
+    {
+      "name": "compact_landscape",
+      "width": 200,
+      "height": 140,
+      "breakpoint_min": 0,
+      "breakpoint_max": 480,
+      "orientation": "landscape"
+    },
+    {
+      "name": "compact_portrait",
+      "width": 140,
+      "height": 200,
+      "breakpoint_min": 0,
+      "breakpoint_max": 480,
+      "orientation": "portrait",
+      "scaling": "rotate_90"
+    }
+  ]
+}
+```
+
+### Handling Portrait Orientation
+
+For horizontal pedals on portrait phones, three strategies:
+
+| Strategy | Example Use | Implementation |
+|----------|-------------|-----------------|
+| **rotate_90** | 3-4 control pedal in portrait | Dimensions swapped, pedal rotated 90° on screen |
+| **scale_fit** | Squeeze to fit | Scale down pedal to fit portrait dimension |
+| **redesign** | Many controls (5+) | Create custom vertical layout variant |
+
+**Recommended**: Use `rotate_90` for typical 3-4 knob effects.
+
+### Implementation in Android
+
+The PluginActivity automatically handles orientation changes:
+
+```java
+@Override
+public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    
+    // Automatically select portrait/landscape variant
+    if (currentSkin != null) {
+        buildUI();  // Rebuilds with appropriate variant
+    }
+}
+```
+
+ThemeManager selects the right variant based on:
+1. Current device orientation (portrait/landscape)
+2. Screen width in density-independent pixels (dp)
+3. Available dimension variants in skin
+
+### Adding to Manifest
+
+Enable rotation handling in `AndroidManifest.xml`:
+
+```xml
+<activity android:name=".PluginActivity"
+    android:screenOrientation="sensor"
+    android:configChanges="orientation|screenSize">
+</activity>
+```
+
 ## Best Practices
 
 ### Skin Management

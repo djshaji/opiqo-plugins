@@ -9,22 +9,43 @@
     "standard": {
       "width": 280,
       "height": 180,
-      "unit": "pixels"
+      "unit": "pixels",
+      "orientation": "landscape"
     },
     "variants": [
       {
-        "name": "compact",
+        "name": "compact_landscape",
         "width": 200,
         "height": 140,
         "breakpoint_min": 0,
-        "breakpoint_max": 480
+        "breakpoint_max": 480,
+        "orientation": "landscape"
+      },
+      {
+        "name": "compact_portrait",
+        "width": 140,
+        "height": 200,
+        "breakpoint_min": 0,
+        "breakpoint_max": 480,
+        "orientation": "portrait",
+        "scaling": "rotate_90"
       },
       {
         "name": "tablet",
         "width": 400,
         "height": 280,
         "breakpoint_min": 481,
-        "breakpoint_max": 1280
+        "breakpoint_max": 1280,
+        "orientation": "landscape"
+      },
+      {
+        "name": "tablet_portrait",
+        "width": 280,
+        "height": 400,
+        "breakpoint_min": 481,
+        "breakpoint_max": 1280,
+        "orientation": "portrait",
+        "scaling": "rotate_90"
       }
     ]
   },

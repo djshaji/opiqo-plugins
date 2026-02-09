@@ -62,37 +62,98 @@ Complete example of a fully-featured guitar overdrive effect skin.
 
 ### Dimensions System
 
-The example demonstrates **responsive design** through dimensions variants:
+The example demonstrates **responsive design** with orientation support:
 
 ```json
 "dimensions": {
   "standard": {
     "width": 280,
     "height": 180,
-    "unit": "pixels"
+    "unit": "pixels",
+    "orientation": "landscape"
   },
   "variants": [
     {
-      "name": "compact",
+      "name": "compact_landscape",
       "width": 200,
       "height": 140,
       "breakpoint_min": 0,
-      "breakpoint_max": 480        // For phones < 480dp
+      "breakpoint_max": 480,       // For phones < 480dp
+      "orientation": "landscape"
+    },
+    {
+      "name": "compact_portrait",
+      "width": 140,
+      "height": 200,
+      "breakpoint_min": 0,
+      "breakpoint_max": 480,       // For phones < 480dp
+      "orientation": "portrait",
+      "scaling": "rotate_90"       // Rotate pedal 90° for portrait
     },
     {
       "name": "tablet",
       "width": 400,
       "height": 280,
       "breakpoint_min": 481,
-      "breakpoint_max": 1280       // For tablets 481-1280dp
+      "breakpoint_max": 1280,      // For tablets
+      "orientation": "landscape"
+    },
+    {
+      "name": "tablet_portrait",
+      "width": 280,
+      "height": 400,
+      "breakpoint_min": 481,
+      "breakpoint_max": 1280,      // For tablets
+      "orientation": "portrait",
+      "scaling": "rotate_90"
     }
   ]
 }
 ```
 
+**Key Fields:**
+- `orientation`: "landscape" or "portrait" — guides UI layout selection
+- `breakpoint_min/max`: Screen width in dp for responsive breakpoints
+- `scaling`: Optional transformation:
+  - `rotate_90`: Rotate pedal 90° clockwise for portrait (dimensions swapped)
+  - (future: scale_fit, scale_fill)
+
+**Strategy for Horizontal Pedals:**
+
+Most guitar effects are designed horizontally (wide × short). For portrait screens:
+1. **Option A: Rotate** (recommended for 3-4 controls)
+   - Swap width/height
+   - Set `scaling: rotate_90`
+   - Touch coordinates automatically adjusted
+
+2. **Option B: Stack Vertically** (for many controls)
+   - Redesign controls vertically
+   - Create completely new layout
+   - Requires custom CSS/positioning
+
+3. **Option C: Scale to Fit**
+   - Use `scaling: scale_fit` to squeeze into portrait
+   - May look tiny (use for < 480dp phones only)
+   - User can pinch to zoom
+
+The example uses **Option A (rotate)** which is most effective.
+
 **ThemeManager Usage:**
 ```java
-themeManager.applyVariant(skin, "compact");   // Switches to compact layout
+// Landscape orientation (default)
+themeManager.applyVariant(skin, "compact_landscape");
+
+// Portrait orientation (rotated)
+themeManager.applyVariant(skin, "compact_portrait");
+
+// Screen rotation listener in Activity
+public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    int orientation = newConfig.orientation;
+    String variantName = getVariantForOrientation(skin, orientation);
+    themeManager.applyVariant(skin, variantName);
+    buildUI();
+}
 ```
 
 ### Colors

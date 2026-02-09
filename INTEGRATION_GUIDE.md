@@ -246,16 +246,34 @@ public class PluginActivity extends AppCompatActivity {
         });
     }
     
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        
+        // Rebuild UI when orientation changes
+        if (currentSkin != null) {
+            buildUI();
+        }
+    }
+    
     private void buildUI() {
         uiContainer.removeAllViews();
         
-        // Get dimensions for current screen
+        // Get current device metrics
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        PluginSkin.Dimension dimension = 
-            currentSkin.getDimensionForWidth(screenWidth);
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        int orientation = getResources().getConfiguration().orientation;
+        
+        // Select dimension variant for current orientation and screen size
+        PluginSkin.Dimension dimension = getDimensionForOrientationAndWidth(
+            currentSkin, orientation, screenWidth);
         
         Log.d(TAG, "Using dimension: " + dimension.name + 
             " (" + dimension.width + "x" + dimension.height + ")");
+        
+        // Check if dimension requires 90-degree rotation
+        boolean rotateUI = "rotate_90".equals(dimension.scaling) && 
+                          Configuration.ORIENTATION_PORTRAIT == orientation;
         
         // Create pedal layout
         LinearLayout pedal = new LinearLayout(this);
@@ -269,26 +287,70 @@ public class PluginActivity extends AppCompatActivity {
             )
         );
         
+        // Apply rotation if needed (portrait mode for landscape pedal)
+        if (rotateUI) {
+            pedal.setRotation(90f);
+            // Adjust container to accommodate rotated pedal
+            int tempWidth = dimension.height;  // swapped
+            int tempHeight = dimension.width;
+            LinearLayout.LayoutParams rotatedParams = 
+                new LinearLayout.LayoutParams(tempWidth, tempHeight);
+            pedal.setLayoutParams(rotatedParams);
+        }
+        
         // Add controls
         for (PluginSkin.Control control : currentSkin.controls) {
-            addControl(pedal, control);
+            addControl(pedal, control, rotateUI);
         }
         
         uiContainer.addView(pedal);
     }
     
+    private PluginSkin.Dimension getDimensionForOrientationAndWidth(
+            PluginSkin skin, int orientation, int screenWidth) {
+        
+        // Determine orientation suffix
+        String orientationSuffix = 
+            (orientation == Configuration.ORIENTATION_PORTRAIT) 
+            ? "_portrait" 
+            : "_landscape";
+        
+        // Find best matching variant
+        PluginSkin.Dimension bestMatch = skin.dimensions.standard;
+        
+        for (PluginSkin.Dimension variant : skin.dimensions.variants) {
+            // Only consider variants matching current orientation
+            if (!variant.name.endsWith(orientationSuffix)) {
+                continue;
+            }
+            
+            // Check if within breakpoint range
+            if (screenWidth >= variant.breakpoint_min && 
+                screenWidth <= variant.breakpoint_max) {
+                
+                // Prefer exact match, fall back to standard
+                if (bestMatch == skin.dimensions.standard ||
+                    variant.breakpoint_max > bestMatch.breakpoint_max) {
+                    bestMatch = variant;
+                }
+            }
+        }
+        
+        return bestMatch;
+    }
+    
     private void addControl(LinearLayout parent, 
-            PluginSkin.Control control) {
+            PluginSkin.Control control, boolean rotated) {
         
         if ("knob".equals(control.type)) {
-            addKnob(parent, control);
+            addKnob(parent, control, rotated);
         } else if ("footswitch".equals(control.type)) {
-            addFootswitch(parent, control);
+            addFootswitch(parent, control, rotated);
         }
     }
     
     private void addKnob(LinearLayout parent, 
-            PluginSkin.Control control) {
+            PluginSkin.Control control, boolean rotated) {
         
         // Create custom KnobView
         KnobView knob = new KnobView(this);
@@ -297,8 +359,19 @@ public class PluginActivity extends AppCompatActivity {
                 control.size,
                 control.size
             );
-        params.leftMargin = control.control_x;
-        params.topMargin = control.control_y;
+        
+        // Adjust margins if UI is rotated
+        int margin_x = control.control_x;
+        int margin_y = control.control_y;
+        
+        if (rotated) {
+            // For 90-degree rotation, swap coordinates
+            // Original (x,y) becomes (originalHeight - y - size, x)
+            // This is handled by the rotation transform on parent
+        }
+        
+        params.leftMargin = margin_x;
+        params.topMargin = margin_y;
         knob.setLayoutParams(params);
         
         // Load sprite sheet
@@ -320,7 +393,7 @@ public class PluginActivity extends AppCompatActivity {
     }
     
     private void addFootswitch(LinearLayout parent, 
-            PluginSkin.Control control) {
+            PluginSkin.Control control, boolean rotated) {
         
         FootSwitchView footswitch = new FootSwitchView(this);
         LinearLayout.LayoutParams params = 

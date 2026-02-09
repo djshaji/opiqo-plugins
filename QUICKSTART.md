@@ -84,6 +84,69 @@ Use the example implementations in [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md):
 
 ## Batch Processing (All 43 Plugins)
 
+### Handling Portrait Orientation
+
+Most guitar effects are designed horizontally. When users rotate their phone to portrait, you have options:
+
+**Option 1: Rotate (Recommended)** ← Easiest
+```json
+{
+  "name": "compact_portrait",
+  "width": 140,
+  "height": 200,
+  "scaling": "rotate_90",
+  "orientation": "portrait"
+}
+```
+The pedal appears rotated 90° on screen, maintaining full size/detail.
+
+**Option 2: Scale to Fit** 
+```json
+{
+  "name": "compact_portrait",
+  "width": 240,
+  "height": 140,
+  "scaling": "scale_fit",
+  "orientation": "portrait"
+}
+```
+The pedal shrinks to fit portrait bounds (may look tiny on phones).
+
+**Option 3: Redesign Layout**
+Create custom portrait layout with controls arranged vertically (manual work).
+
+### Android Handle Orientation Changes
+
+In your `PluginActivity`:
+
+```java
+@Override
+public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    if (currentSkin != null) {
+        buildUI();  // Auto-selects portrait/landscape variant
+    }
+}
+```
+
+In `AndroidManifest.xml`:
+```xml
+<activity android:name=".PluginActivity"
+    android:screenOrientation="sensor"
+    android:configChanges="orientation|screenSize">
+</activity>
+```
+
+The system automatically picks the right variant:
+- Screen < 480dp + portrait → `compact_portrait` (rotate_90)
+- Screen < 480dp + landscape → `compact_landscape`
+- Screen > 480dp + portrait → `tablet_portrait` (rotate_90)
+- Screen > 480dp + landscape → `tablet`
+
+This lets users rotate their phone and the UI adapts automatically.
+
+## Batch Processing (All 43 Plugins)
+
 Run this Python script to convert all plugins:
 
 ```python

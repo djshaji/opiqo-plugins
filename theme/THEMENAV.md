@@ -10,7 +10,10 @@ Complete index to the opiqo-plugins theme system for Android LV2 audio plugins.
 - 5-minute setup guide
 - Step-by-step checklist
 - Common issues
-
+**Make my horizontal pedal work in portrait mode** → [ORIENTATION_GUIDE.md](ORIENTATION_GUIDE.md)
+- Three strategies explained (rotate_90, scale_fit, redesign)
+- Recommended approach with full code examples
+- Performance considerations and future enhancements
 **Understand the architecture** → [theme/README.md](theme/README.md)
 - System overview
 - Component descriptions
@@ -349,6 +352,11 @@ tm.loadSkinAsync("gx_axisface", skin -> {
 ### Task: "Apply presets programmatically"
 → See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) → **Step 3.2** → applyPreset()
 
+### Task: "Handle horizontal pedal on portrait phone"
+→ Read [ORIENTATION_GUIDE.md](ORIENTATION_GUIDE.md) → Compares all 3 strategies with examples
+→ Recommended: Use `scaling: rotate_90` in skin variants
+→ See [QUICKSTART.md](../QUICKSTART.md#handling-portrait-orientation) → Implementation checklist
+
 ---
 
 ## File Inventory
@@ -363,6 +371,7 @@ tm.loadSkinAsync("gx_axisface", skin -> {
 | [theme/java/README.md](theme/java/README.md) | 400+ | Java API reference |
 | [theme/python/README.md](theme/python/README.md) | 50+ | Python dependencies |
 | [theme/examples/README.md](theme/examples/README.md) | 600+ | Example skin breakdown |
+| [theme/ORIENTATION_GUIDE.md](ORIENTATION_GUIDE.md) | 300+ | Portrait orientation strategies |
 
 ### Code (Java)
 | File | Lines | Purpose |
@@ -383,7 +392,7 @@ tm.loadSkinAsync("gx_axisface", skin -> {
 |------|------|---------|
 | [theme/examples/gx_axisface_example.json](theme/examples/gx_axisface_example.json) | 5KB | Complete skin reference |
 
-**Total: ~7,000 lines of code, documentation, and tools**
+**Total: ~7,500 lines of code, documentation, and tools**
 
 ---
 
