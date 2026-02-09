@@ -1,0 +1,16 @@
+name: build
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Install lv2-dev
+      run: |
+        sudo apt-get install lv2-dev
+    - uses: actions/checkout@v1
+    - name: make
+      run: make

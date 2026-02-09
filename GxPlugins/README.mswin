@@ -1,0 +1,15 @@
+To compile the GxPlugins.lv2 LV2 plugins on MS-Windows:
+
+- Download and install MSYS2 from https://www.msys2.org/
+- Start a MinGW64 shell from the install location (e.g. "C:\MSYS64\MinGW64.exe")
+- Inside the shell, install the required packages using pacman:
+  # pacman -Syu
+  # pacman -S git make mingw-w64-x86_64-gcc mingw-w64-x86_64-lv2 mingw-w64-x86_64-cairo mingw-w64-x86_64-pkgconf pkgconf
+- Download the GxPlugins.lv2 sources and its submodules:
+  # git clone --recurse https://github.com/brummer10/GxPlugins.lv2.git
+  # cd GxPlugins.lv2
+- Build the plugins:
+  # make
+  # make DESTDIR=$(pwd)/_bin install
+- The compiled plugins should show up in the "_bin/" folder inside the source directory
+- Untested: To compile 32bit versions, start the MinGW32 shell and install the 32bit libraries (in the pacman clause, replace all all "x86_64" by "i686")

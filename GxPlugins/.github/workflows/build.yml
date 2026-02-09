@@ -1,0 +1,161 @@
+name: build
+
+on: [push]
+#on:
+#  push:
+#    tags:
+#      - 'v*'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ####################
+  create-source-archive:
+    runs-on: ubuntu-20.04
+
+    outputs:
+      artifact-name: ${{ env.ARCHIVE_NAME }}
+
+    steps:
+    - name: Check out sources
+      uses: actions/checkout@v3.3.0
+      with:
+        path: GxPlugins.lv2
+        submodules: recursive
+
+    - name: create source package
+      run: tar --exclude=.git* -cjf GxPlugins.tar.bz2 GxPlugins.lv2
+
+    - name: Set Archive Name
+      run: echo "ARCHIVE_NAME=gxplugins-source-code" >> "$GITHUB_ENV"
+
+    - uses: actions/upload-artifact@v3.1.2
+      with:
+        name: ${{ env.ARCHIVE_NAME }}
+        path: GxPlugins.tar.bz2
+
+  ####################
+  build-linux:
+    runs-on: ubuntu-latest
+
+    outputs:
+      artifact-name: ${{ env.ARCHIVE_NAME }}
+
+    steps:
+    - name: Check out sources
+      uses: actions/checkout@v3.3.0
+      with:
+        submodules: recursive
+
+    - name: install lv2
+      run: |
+        sudo apt-get install lv2-dev debhelper fakeroot
+    - name: build deb
+      run: dpkg-buildpackage -rfakeroot -uc -us -b
+    - name: copy deb
+      run: cp ../gxplugins_*_amd64.deb .
+
+    - name: Set Archive Name
+      run: echo "ARCHIVE_NAME=gxplugins-linux" >> "$GITHUB_ENV"
+
+    - uses: actions/upload-artifact@v3.1.2
+      with:
+        name: ${{ env.ARCHIVE_NAME }}
+        path: gxplugins_*_amd64.deb
+
+  ####################
+  build-windows:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    outputs:
+      artifact-name: ${{ env.ARCHIVE_NAME }}
+
+    steps:
+    - name: Prepare MSys2
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          base-devel
+          git
+          make
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-lv2
+          mingw-w64-x86_64-cairo
+          mingw-w64-x86_64-pkgconf
+          pkgconf
+          mingw-w64-x86_64-7zip
+
+    - name: Check out sources
+      uses: actions/checkout@v3.3.0
+      with:
+        submodules: recursive
+
+    - name: make
+      run: make -j && make DESTDIR=$(pwd)/_bin install
+    - name: add license and readme
+      run: cp LICENSE README.md _bin~/.lv2/
+    - name: zip
+      run: mv _bin~/.lv2 _bin~/lv2 ; cd _bin~ ; 7z a -mx9 ../plugin.7z lv2 ; cd ..
+
+    - name: Set Archive Name
+      run: echo "ARCHIVE_NAME=gxplugins-windows" >> "$GITHUB_ENV"
+
+    - uses: actions/upload-artifact@v3.1.2
+      with:
+        name: ${{ env.ARCHIVE_NAME }}
+        path: plugin.7z
+
+  ####################
+  release:
+    runs-on: ubuntu-20.04
+
+    outputs:
+      tag-short: ${{ env.TAG_SHORT }}
+
+    needs:
+      - create-source-archive
+      - build-linux
+      - build-windows
+
+    steps:
+    - name: Set short tag name
+      run: |
+        TAG_SHORT=${{ github.ref_name }} # branch or tag
+        if [[ ${{ github.ref_type }} == 'tag' ]] \
+        && [[ $TAG_SHORT =~ ^v[0-9] ]] ; then
+          TAG_SHORT=${TAG_SHORT:1} # remove leading 'v' from tag (v1.0 -> 1.0)
+        fi
+        echo "TAG_SHORT=$TAG_SHORT" >> "$GITHUB_ENV"
+
+# required?
+#    - name: Move 'Latest' tag
+#      uses: richardsimko/update-tag@v1.0.7
+#      with:
+#        tag_name: Latest
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3.0.2
+
+    - name: Create Archives
+      run: |
+        mv gxplugins-source-code/GxPlugins.tar.bz2 ./gxplugins_${{ env.TAG_SHORT }}_src.tar.bz2
+        mv gxplugins-linux/gxplugins_*_amd64.deb   ./gxplugins_${{ env.TAG_SHORT }}_amd64.deb
+        mv gxplugins-windows/plugin.7z             ./gxplugins_${{ env.TAG_SHORT }}_win64.7z
+
+    - uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        prerelease: true
+        files: |
+          gxplugins_${{ env.TAG_SHORT }}_src.tar.bz2
+          gxplugins_${{ env.TAG_SHORT }}_amd64.deb
+          gxplugins_${{ env.TAG_SHORT }}_win64.7z

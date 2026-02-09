@@ -1,0 +1,41 @@
+gxplugins (1.0) unstable; urgency=medium
+
+  * restructured, support for mswin
+
+ -- thorsten <info@netztorte.de>  Thu, 19 Jan 2023 07:21:04 +0100
+
+gxplugins (0.9) unstable; urgency=medium
+
+  * Fix issue with ON/OFF toggle buttons.
+
+ -- hermann <brummer@org>  Wed, 17 Apr 2021 19:05:53 +0200
+
+gxplugins (0.8) unstable; urgency=medium
+
+  * add GxBlueAmp GxClubDrive GxEternity GxLuna GxPlexi GxSloopyBlue GxTimRay.
+
+ -- hermann <brummer@org>  Wed, 05 Dec 2018 04:05:53 +0200
+
+gxplugins (0.7) unstable; urgency=medium
+
+  * add GxBlueAmp GxClubDrive GxEternity GxLuna GxPlexi GxSloopyBlue GxTimRay.
+
+ -- hermann <brummer@org>  Wed, 05 Dec 2018 04:05:53 +0200
+
+gxplugins (0.6) unstable; urgency=medium
+
+  * small bug fixes in X11 based GUI's.
+
+ -- hermann <brummer@org>  Wed, 05 Dec 2018 04:05:53 +0200
+
+gxplugins (0.5) unstable; urgency=medium
+
+  * Switch to X11 based GUI's.
+
+ -- hermann <brummer@org>  Mon, 08 Oct 2018 06:05:53 +0200
+
+gxplugins (0.4) unstable; urgency=medium
+
+  * Initial Release.
+
+ -- hermann <brummer@org>  Mon, 24 Apr 2017 14:05:53 +0200
